@@ -1,6 +1,7 @@
 package com.example.ecom.project.service;
 
 
+import com.example.ecom.project.dto.CartRequest;
 import com.example.ecom.project.model.Cart;
 import com.example.ecom.project.model.CartItem;
 import com.example.ecom.project.model.Product;
@@ -29,20 +30,24 @@ public class CartService {
     }
 
     @Transactional
-    public Cart addToCart(String email, int productId, int quantity) {
+    public Cart addToCart(String email, CartRequest req) {
         Cart cart = getCartByUser(email);
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findById(req.getProductId())
                 .orElseThrow(() -> new RuntimeException("Produs negăsit"));
 
-        // Verificăm dacă produsul există deja în coș folosind getProductId()
+        // Filtrare avansată: ID + Culoare + Mărime
         java.util.Optional<CartItem> existingItem = cart.getItems().stream()
-                .filter(item -> item.getProduct().getProductId() == product.getProductId())
+                .filter(item -> item.getProduct().getProductId() == product.getProductId()
+                        && item.getColor().equals(req.getColor())
+                        && item.getSize().equals(req.getSize()))
                 .findFirst();
 
         if (existingItem.isPresent()) {
-            existingItem.get().setQuantity(existingItem.get().getQuantity() + quantity);
+            // Dacă rândul există deja, adunăm cantitatea
+            existingItem.get().setQuantity(existingItem.get().getQuantity() + req.getQuantity());
         } else {
-            CartItem newItem = new CartItem(cart, product, quantity);
+            // Dacă este o combinație nouă (ex: altă mărime), creăm un CartItem nou
+            CartItem newItem = new CartItem(cart, product, req.getColor(), req.getSize(), req.getQuantity());
             cart.getItems().add(newItem);
         }
 

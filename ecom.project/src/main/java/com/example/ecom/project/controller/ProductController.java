@@ -1,7 +1,9 @@
 package com.example.ecom.project.controller;
 
 
+import com.example.ecom.project.dto.ProductDTO;
 import com.example.ecom.project.model.Product;
+import com.example.ecom.project.model.ProductImage;
 import com.example.ecom.project.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,101 +18,89 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)@RequestMapping("/api")
 public class ProductController {
-
     @Autowired
     private ProductService service;
 
-   @GetMapping("/products")
-   public List<Product> getAllProducts() {
-       return service.getAllProducts();
-   }
+    @GetMapping("/products")
+    public List<Product> getAllProducts() {
+        return service.getAllProducts();
+    }
 
-   @GetMapping("/product/{id}")
-   public ResponseEntity<Product> getProductById(@PathVariable int id) {
-       Product product = service.getProductById(id);
-       if (product != null)
-           return new ResponseEntity<>(product, HttpStatus.OK);
-       else
-           return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-   }
+    @GetMapping("/product/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable int id) {
+        Product product = service.getProductById(id);
+        return (product != null) ? ResponseEntity.ok(product) : ResponseEntity.notFound().build();
+    }
 
     @GetMapping("/product/{id}/suggestions")
     public ResponseEntity<List<Product>> getSuggestions(@PathVariable int id) {
-        List<Product> suggestions = service.getSuggestions(id);
-        return ResponseEntity.ok(suggestions);
+        return ResponseEntity.ok(service.getSuggestions(id));
     }
 
     @PostMapping(value = "/product", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addProduct(
-            @RequestPart("product") Product product,
-            @RequestPart("imageFile") MultipartFile imageFile) {
-
+            @RequestPart("product") ProductDTO productDto,
+            @RequestPart("imageFiles") List<MultipartFile> imageFiles) {
         try {
-            Product saved = service.addProduct(product, imageFile);
+            Product saved = service.addProduct(productDto, imageFiles);
             return new ResponseEntity<>(saved, HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(500).body(e.getMessage());
         }
     }
 
-   @GetMapping("product/{productId}/image")
-   public ResponseEntity<byte[]> getImageByProductId(@PathVariable int productId) {
+    // Endpoint actualizat pentru a prelua o imagine specifică din galeria produsului
+    @GetMapping("/product/image/{imageId}")
+    public ResponseEntity<byte[]> getProductImage(@PathVariable int imageId) {
+        ProductImage image = service.getImageById(imageId);
 
-
-       Product product = service.getProductById(productId);
-       byte[] imageFile = product.getImageDate();
-
-       return   ResponseEntity.ok()
-               .contentType(MediaType.valueOf(product.getImageType()))
-               .body(imageFile);
-    }
-
-    @PutMapping("/product/{id}")
-    public ResponseEntity<String> updateProduct(@PathVariable int id,
-                                                @RequestPart("product") Product product,
-                                                @RequestPart("imageFile") MultipartFile imageFile) {
-       Product product1;
-       try {
-           product1 = service.updateProduct(id, product, imageFile);
-       } catch (IOException e) {
-           return new ResponseEntity<>("Failed to update", HttpStatus.BAD_REQUEST);
-       }
-
-       if(product1 != null)
-           return new ResponseEntity<>("Product updated successfully", HttpStatus.OK);
-       else
-           return new ResponseEntity<>("Failed to update", HttpStatus.BAD_REQUEST);
-    }
-
-    @DeleteMapping("/product/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable int id) {
-        Product product = service.getProductById(id);
-        if (product != null) {
-            service.deleteProduct(id);
-            return new ResponseEntity<>("Product deleted successfully", HttpStatus.OK);
+        if (image != null && image.getImageData() != null) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(image.getImageType()))
+                    .body(image.getImageData());
         }
-        else {
-            return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
-        }
+        return ResponseEntity.notFound().build();
     }
 
-
-
-   @DeleteMapping("products")
-   public String deleteAllProducts() {
-       service.deleteAllPrducts();
-       return "All products deleted";
-   }
-
-    // Adaugă în ProductController.java
     @GetMapping("/products/search")
     public ResponseEntity<List<Product>> searchProducts(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int minPrice,
             @RequestParam(defaultValue = "1000000") int maxPrice) {
+        return ResponseEntity.ok(service.searchProducts(keyword, minPrice, maxPrice));
+    }
 
-        List<Product> filteredProducts = service.searchProducts(keyword, minPrice, maxPrice);
-        return new ResponseEntity<>(filteredProducts, HttpStatus.OK);
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable int id) {
+        if (service.getProductById(id) != null) {
+            service.deleteProduct(id);
+            return ResponseEntity.ok("Produsul și toate variantele au fost șterse.");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produsul nu există.");
+    }
+
+    @PutMapping(value = "/product/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProduct(
+            @PathVariable int id,
+            @RequestPart("product") ProductDTO productDto,
+            @RequestPart(value = "imageFiles", required = false) List<MultipartFile> imageFiles) {
+        try {
+            // Presupunem că ai deja metoda updateProduct definită în ProductService
+            Product updated = service.updateProduct(id, productDto, imageFiles);
+            return new ResponseEntity<>(updated, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Eroare la update: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/product/image/{imageId}")
+    public ResponseEntity<?> deleteProductImage(@PathVariable int imageId) {
+        try {
+            service.deleteImage(imageId);
+            return ResponseEntity.ok("Imagine ștearsă cu succes.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Eroare la ștergere: " + e.getMessage());
+        }
     }
 }
 

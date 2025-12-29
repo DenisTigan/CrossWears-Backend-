@@ -1,6 +1,9 @@
 package com.example.ecom.project.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Product {
@@ -10,87 +13,35 @@ public class Product {
     private String productName;
     private String productDescription;
     private int productPrice;
-    private int quantity;
     private boolean available;
-    private String imageName;
-    private String imageType;
-    @Lob
-    private byte[] imageDate;
 
+    // Un produs are mai multe variante (mărimi/culori)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ProductVariant> variants;
 
+    // Un produs are mai multe imagini
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<ProductImage> images;
 
-    public Product() {
-    }
+    public Product() {}
 
-    public int getProductId() {
-        return productId;
-    }
+    // Getters și Setters pentru câmpurile de bază
+    public int getProductId() { return productId; }
+    public void setProductId(int productId) { this.productId = productId; }
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
+    public String getProductDescription() { return productDescription; }
+    public void setProductDescription(String productDescription) { this.productDescription = productDescription; }
+    public int getProductPrice() { return productPrice; }
+    public void setProductPrice(int productPrice) { this.productPrice = productPrice; }
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
 
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getProductDescription() {
-        return productDescription;
-    }
-
-    public void setProductDescription(String productDescription) {
-        this.productDescription = productDescription;
-    }
-
-    public int getProductPrice() {
-        return productPrice;
-    }
-
-    public void setProductPrice(int productPrice) {
-        this.productPrice = productPrice;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
-    public String getImageName() {
-        return imageName;
-    }
-
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
-    }
-
-    public String getImageType() {
-        return imageType;
-    }
-
-    public void setImageType(String imageType) {
-        this.imageType = imageType;
-    }
-
-    public byte[] getImageDate() {
-        return imageDate;
-    }
-
-    public void setImageDate(byte[] imageDate) {
-        this.imageDate = imageDate;
-    }
+    // Getters și Setters pentru Liste
+    public List<ProductVariant> getVariants() { return variants; }
+    public void setVariants(List<ProductVariant> variants) { this.variants = variants; }
+    public List<ProductImage> getImages() { return images; }
+    public void setImages(List<ProductImage> images) { this.images = images; }
 }

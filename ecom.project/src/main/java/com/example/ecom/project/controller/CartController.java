@@ -24,7 +24,8 @@ public class CartController {
 
     @PostMapping("/add")
     public ResponseEntity<Cart> addToCart(@RequestBody CartRequest request, Authentication auth) {
-        return ResponseEntity.ok(cartService.addToCart(auth.getName(), request.getProductId(), request.getQuantity()));
+        // Trimitem tot obiectul request pentru a include mărimea și culoarea
+        return ResponseEntity.ok(cartService.addToCart(auth.getName(), request));
     }
 
     @DeleteMapping("/remove/{itemId}")
