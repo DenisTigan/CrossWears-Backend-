@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: crosswears-backend
+    runtime: docker
+    plan: free
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:mysql://shinkansen.proxy.rlwy.net:28086/railway
+      - key: SPRING_DATASOURCE_USERNAME
+        value: root
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: kZKlXjITRQaQFAFdqXbewEfZoZgjEwAq
