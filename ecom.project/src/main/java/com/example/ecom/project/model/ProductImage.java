@@ -2,6 +2,7 @@ package com.example.ecom.project.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,6 +18,7 @@ public class ProductImage {
 
     @Lob
     @Column(length = 1000000)
+    @JsonIgnore
     private byte[] imageData;
 
     @ManyToOne
