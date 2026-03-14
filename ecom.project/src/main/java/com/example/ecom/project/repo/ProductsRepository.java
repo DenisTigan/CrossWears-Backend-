@@ -10,8 +10,6 @@ import java.util.List;
 
 public interface ProductsRepository extends JpaRepository<Product, Integer> {
 
-    // QUERY NATIV MYSQL:
-    // Selectează tot din tabel, exclude ID-ul curent, amestecă random, ia doar 4
     @Query(value = "SELECT * FROM product WHERE product_id != :excludedId ORDER BY RAND() LIMIT 4", nativeQuery = true)
     List<Product> findRandomSuggestions(@Param("excludedId") int excludedId);
 

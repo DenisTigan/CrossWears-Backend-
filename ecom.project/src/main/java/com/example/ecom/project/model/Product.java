@@ -15,12 +15,10 @@ public class Product {
     private int productPrice;
     private boolean available;
 
-    // Un produs are mai multe variante (mărimi/culori)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductVariant> variants;
 
-    // Un produs are mai multe imagini
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<ProductImage> images;
